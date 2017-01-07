@@ -34,6 +34,27 @@ def intersectionsP(lines, height, width):
 			frameIntersectionsP = cv2.add(frameIntersectionsP, tmpFrame)
 	return frameIntersectionsP
 
+def localMaxima(img,sqrSize):
+	height,width=img.shape
+	imgCopy = img.copy()
+	localMaxima = []
+	if sqrSize >= 3:
+		sqrCenter = int((sqrSize-1)/2)
+	else:
+		sqrCenter = 1
+
+	localMask= np.zeros((sqrSize,sqrSize), dtype = "uint8")
+	localMask[sqrCenter, sqrCenter] = 255
+	for y in range(sqrCenter,height-sqrCenter):
+		for x in range(sqrCenter,width-sqrCenter):
+			if imgCopy[y,x]==0:
+				continue
+			(minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(imgCopy[y-sqrCenter:y+sqrCenter+1, x-sqrCenter:x+sqrCenter+1])
+			if imgCopy[y,x] == maxVal:
+				imgCopy[y-sqrCenter:y+sqrCenter+1, x-sqrCenter:x+sqrCenter+1] = cv2.bitwise_and(imgCopy[y-sqrCenter:y+sqrCenter+1, x-sqrCenter:x+sqrCenter+1],localMask)
+				localMaxima.append((x,y))
+	return localMaxima
+
 def brightestSpotsImg(img, nbSpots):
 	imgCopy = img.copy()
 	height, width = img.shape
@@ -51,6 +72,9 @@ def brightestSpotsImg(img, nbSpots):
 		if maxLoc[0] < height:
 			imgCopy[maxLoc[1],maxLoc[0]+1] = 0
 		
+	locMaxima = localMaxima(img, 53)
+	for i in locMaxima:
+		cv2.circle(spotsImg, i, 5, (0,0,255), 2)
 	return spotsImg
 
 def frameTreatment(frame, prevFrame):
