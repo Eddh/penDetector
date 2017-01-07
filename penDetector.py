@@ -57,25 +57,34 @@ def frameTreatment(frame, prevFrame):
 	frameHeight, frameWidth, nbColors = frame.shape
 	frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	frameHSL = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
-	frameHue = frame[:,:,0]
-	frameLightness = frame[:,:,1]
-	frameSaturation = frame[:,:,2]
 
 	diff = cv2.absdiff(frame, prevFrame)
 	diffGray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 	ret, diffGray = cv2.threshold(diffGray, 10, 255, cv2.THRESH_TOZERO)
 	diffGray = cv2.equalizeHist(diffGray)
 	ret, diffGrayBin = cv2.threshold(diffGray,68, 255, cv2.THRESH_BINARY)
-
 	frameDiff = cv2.bitwise_and(frame,frame,mask=diffGrayBin) 
-	diffCanny = cv2.Canny(frameDiff, threshold1=100, threshold2=500, apertureSize=3)
+	
+	frameLaplacian = cv2.Laplacian(frameHSL,-1)
+	frameLaplacianHSV = cv2.cvtColor(frameLaplacian,cv2.COLOR_BGR2HSV)
+	frameLaplacianBlue = cv2.inRange(frameLaplacianHSV,(110,100,100),(130,255,255))
+	frameLaplacianBlue = cv2.bitwise_and(frameLaplacian,frameLaplacian,mask=frameLaplacianBlue)
+	frameLaplacianGray = cv2.cvtColor(frameLaplacianBlue, cv2.COLOR_BGR2GRAY)
+
+
+	diffCanny = cv2.Canny(frameDiff, threshold1=300, threshold2=500, apertureSize=3)
+	diffLaplacian = cv2.bitwise_and(frameLaplacianGray,frameLaplacianGray,mask=diffGrayBin)
+	diffLaplacian = cv2.equalizeHist(diffLaplacian)
 
 #	lines = cv2.HoughLinesP(diffCanny,1,np.pi/180,threshold=20,minLineLength=10,maxLineGap=5)
-	lines = cv2.HoughLines(diffCanny,1,np.pi/180,threshold=30)
+	lines = cv2.HoughLines(diffLaplacian,1,np.pi/180,threshold=10)
 	frameIntersections = intersections(lines, frameHeight, frameWidth)	
 	frameIntersectionsBlur = cv2.GaussianBlur(frameIntersections,(33,33),0)
+	frameIntersectionsBlurRGB = cv2.cvtColor(frameIntersectionsBlur,cv2.COLOR_GRAY2BGR)
+	mix = cv2.add(frame,frameIntersectionsBlurRGB)
 	spotsImg = brightestSpotsImg(frameIntersectionsBlur, 10)
-	spotsImg = cv2.add(spotsImg, diff)
+	spotsImg = cv2.add(spotsImg,mix)
+	
 	img=spotsImg
 	cv2.imshow('window', img)
 
