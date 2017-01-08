@@ -11,7 +11,7 @@ from detectArmDirection import *
 # Treate the current frame, using
 # the previous frame
 # -----------------------------------
-def frameTreatment(frame, prevFrame, pointCoordonates):
+def frameTreatment(frame, prevFrame, pointCoordinates):
 	# initialisation
 	frameHeight, frameWidth, nbColors = frame.shape
 	frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -26,27 +26,36 @@ def frameTreatment(frame, prevFrame, pointCoordonates):
 	# thresholding of the gray difference
 	ret, diffGray = cv2.threshold(diffGray, 20, 255, cv2.THRESH_TOZERO)
 	
+	# extract dark pixel
+	binarizedFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	ret, binarizedFrame = cv2.threshold(binarizedFrame, 80, 255, cv2.THRESH_BINARY_INV)
+
+	# we remove the white parts 
+	diffGray = cv2.min(binarizedFrame, diffGray)
+
+
 	# detect if there is an arm in the image and his direction
 	armDirection = detectArmDirection(diffGray, frameWidth)
 	#print(armDirection)
-
+	
+	
 
 	imgCopy2 = np.zeros((frameHeight,frameWidth,3), dtype = "uint8")
 	imgCopy2 = frame.copy()
 	
 	if armDirection != -1:
-		coordonates = (0, 0)
+		coordinates = (0, 0)
 		if armDirection == 0:
-			coordonates = extremumPoint(diffGray, 0)
+			coordinates = extremumPoint(diffGray, 0)
 		elif armDirection == 1:
-			coordonates = extremumPoint(diffGray, 1)
+			coordinates = extremumPoint(diffGray, 1)
 
-		cv2.circle(imgCopy2, coordonates, 10, (0,255,0), 2)
-		cv2.circle(diffGray, coordonates, 10, (0,255,0), 2)
-		pointCoordonates.insert(len(pointCoordonates), coordonates)
+		cv2.circle(imgCopy2, coordinates, 10, (0,255,0), 2)
+		pointCoordinates.insert(len(pointCoordinates), coordinates)
 
 	cv2.imshow('imgCopy2', imgCopy2)
 	cv2.imshow('diffGray', diffGray)
+
 
 	# histogram equalisation
 	#diffGray = cv2.equalizeHist(diffGray)
@@ -68,7 +77,7 @@ def frameTreatment(frame, prevFrame, pointCoordonates):
 # -----------------------------------
 # Write the ouput image
 # -----------------------------------
-def computeOutputImage(pointCoordonates, frameHeight, frameWidth):
+def computeOutputImage(pointCoordinates, frameHeight, frameWidth):
 	# the maximum distance between points
 	maxDist = 50
 
@@ -76,10 +85,10 @@ def computeOutputImage(pointCoordonates, frameHeight, frameWidth):
 	outputImage = np.zeros((frameWidth,frameHeight,1), dtype = "uint8")
 	outputImage[:] = 255
 
-	for i in range(len(pointCoordonates)):
+	for i in range(len(pointCoordinates)):
 		if i>0:
-			p1 = pointCoordonates[i-1]
-			p2 = pointCoordonates[i]
+			p1 = pointCoordinates[i-1]
+			p2 = pointCoordinates[i]
 			dist = np.sqrt((p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]))
 			if dist<=maxDist:
 				cv2.line(outputImage,p1,p2,10,2)
@@ -111,17 +120,17 @@ def videoLoop(video):
 	# read the first frame
 	ret, prevFrame = video.read()
 	
-	pointCoordonates = []
+	pointCoordinates = []
 
 	while(video.isOpened()):
 		ret, frame = video.read()
 		if (not ret):
 			print('end of video')
 			
-			computeOutputImage(pointCoordonates, frameWidth, frameHeight)
+			computeOutputImage(pointCoordinates, frameWidth, frameHeight)
 			break
 
-		frameTreatment(frame, prevFrame, pointCoordonates)
+		frameTreatment(frame, prevFrame, pointCoordinates)
 		
 		key = cv2.waitKey(50)
 		key = key & 0xFF

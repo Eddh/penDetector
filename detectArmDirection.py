@@ -48,16 +48,11 @@ def countValues(threshold, array):
 # --------------------------------------------
 #
 def detectArmDirection(grayDiff, frameWidth):
-	#leftMostPixelColumn = grayDiff[:, 0]
-	#rightMostPixelColumn = grayDiff[:, frameWidth-1]
-
-	#countLeft = countValues(10, leftMostPixelColumn)
-	#countRight = countValues(10, rightMostPixelColumn)
 	
-	# we sum the pixel in the 10 first and 10 last columns
+	# we sum the pixel in the left and the right part of the frame
 	countLeft = 0
 	countRight = 0
-	for i in range(10):
+	for i in range((int)(frameWidth/2)):
 		countLeft += sum(grayDiff[:, 0+i])
 		countRight += sum(grayDiff[:, frameWidth-1-i])
 
