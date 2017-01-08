@@ -2,14 +2,14 @@ import numpy as np
 
 class Kallman:
 
-	def __init__(self, vectorSize, Hk):
+	def __init__(self, vectorSize, Hk, Qk):
 		self.xkPriori = np.zeros(vectorSize, dtype = 'Float64')
 		self.PkPriori = np.zeros((vectorSize, vectorSize), dtype = 'Float64')
 		self.Fk = np.zeros((vectorSize, vectorSize), dtype = 'Float64')
 		# Qk : covariance of external uncertainty
-		self.Qk = np.identity(vectorSize)
+		self.Qk = Qk
 		self.Hk = Hk 
-		# add Bk maybe if necessary
+		# add Bk maybe if necessary	
 
 	def initialize(self, xkInitial, PkInitial):
 		self.prediction(xkInitial, PkInitial)	
