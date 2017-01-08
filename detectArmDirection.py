@@ -65,6 +65,72 @@ def detectArmDirection(grayDiff, frameWidth):
 		return 1
 	
 
+def detectArmAngle(grayDiff, frameWidth, frameHeight):
+	globalAngle = 0;
+	detectedPixel = 0;
+	found = False
+
+	#top side
+	y=0
+	for x in range(frameWidth):
+		if grayDiff[y, x]>0:
+			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
+			if angle > np.pi/4:
+				angle -= 2*np.pi
+			globalAngle += angle
+			detectedPixel += 1
+	#left side
+	x=0
+	for y in range(frameHeight):
+		if grayDiff[y, x]>0:
+			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
+			if angle > np.pi/4:
+				angle -= 2*np.pi
+			globalAngle += angle
+			detectedPixel += 1
+	#bot side
+	y=frameHeight-1
+	for x in range(frameWidth):
+		if grayDiff[y, x]>0:
+			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
+			if angle > np.pi/4:
+				angle -= 2*np.pi
+			globalAngle += angle
+			detectedPixel += 1
+	#right side
+	x=frameWidth-1
+	for y in range(frameHeight):
+		if grayDiff[y, x]>0:
+			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
+			if angle > np.pi/4:
+				angle -= 2*np.pi
+			globalAngle += angle
+			detectedPixel += 1
+	
+	if detectedPixel > 0:
+		globalAngle /= detectedPixel
+		found = True
+
+	return (found, globalAngle)
+
+
+
+
+def findFarthestPoint(diffGray, frameWidth, frameHeight, point):
+	coordinates = point
+	farthestDist = 0
+	for x in range(frameWidth):
+		for y in range(frameHeight):
+			if diffGray[y, x] > 0:
+				dist = (x-point[0])*(x-point[0]) + (y-point[1])*(y-point[1])
+				if dist>farthestDist:
+					coordinates=(x, y)
+					farthestDist = dist
+	return coordinates
+
+
+	
+
 
 # --------------------------------------------
 # Return the intex of the leftmost pixel if

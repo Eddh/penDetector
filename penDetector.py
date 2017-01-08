@@ -35,21 +35,21 @@ def frameTreatment(frame, prevFrame):
 
 
 	# detect if there is an arm in the image and his direction
-	armDirection = detectArmDirection(diffGray, frameWidth)
-	#print(armDirection)
-	
-	
+	(res, armAngle) = detectArmAngle(diffGray, frameWidth, frameHeight)
 
 	imgCopy2 = np.zeros((frameHeight,frameWidth,3), dtype = "uint8")
 	imgCopy2 = frame.copy()
-	
+
+
 	coordinates = (-1, -1)
 
-	if armDirection != -1:
-		if armDirection == 0:
-			coordinates = extremumPoint(diffGray, 0)
-		elif armDirection == 1:
-			coordinates = extremumPoint(diffGray, 1)
+	if res:
+		armPoint = ((int)(frameWidth/2)+(int)(frameWidth/2*np.cos(armAngle)),(int)(frameHeight/2)+(int)(frameWidth/2*np.sin(armAngle)))
+		cv2.line(imgCopy2,((int)(frameWidth/2),(int)(frameHeight/2)),armPoint,5,2)	
+	
+		# compute coordinates
+		coordinates = findFarthestPoint(diffGray, frameWidth, frameHeight, armPoint)
+	
 
 		cv2.circle(imgCopy2, coordinates, 10, (0,255,0), 2)
 
