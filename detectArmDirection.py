@@ -25,7 +25,7 @@ def findLast(threshold, array):
 	lastIndex = -1;
 	for i in range(size):
 		if  array[i] < threshold and lastValue>=threshold:
-			lastIndex = i
+			lastIndex = i-1
 		lastValue = array[i]
 	return lastIndex
 
@@ -48,15 +48,21 @@ def countValues(threshold, array):
 # --------------------------------------------
 #
 def detectArmDirection(grayDiff, frameWidth):
-	cv2.imshow('grayDiff', grayDiff)
+	#leftMostPixelColumn = grayDiff[:, 0]
+	#rightMostPixelColumn = grayDiff[:, frameWidth-1]
 
-	leftMostPixelColumn = grayDiff[:, 0]
-	rightMostPixelColumn = grayDiff[:, frameWidth-1]
+	#countLeft = countValues(10, leftMostPixelColumn)
+	#countRight = countValues(10, rightMostPixelColumn)
+	
+	# we sum the pixel in the 10 first and 10 last columns
+	countLeft = 0
+	countRight = 0
+	for i in range(10):
+		countLeft += sum(grayDiff[:, 0+i])
+		countRight += sum(grayDiff[:, frameWidth-1-i])
 
-	countLeft = countValues(10, leftMostPixelColumn)
-	countRight = countValues(10, rightMostPixelColumn)
-
-	if countLeft == 0 and countRight == 0:
+	threshold = 10
+	if countLeft < threshold and countRight < threshold:
 		return -1
 	elif countLeft > countRight:
 		return 0
@@ -64,35 +70,34 @@ def detectArmDirection(grayDiff, frameWidth):
 		return 1
 	
 
+
 # --------------------------------------------
-# Return the intex of the leftmost
-# value in a gray image or (0, 0) is the image is 
+# Return the intex of the leftmost pixel if
+# leftMost = 1, or the rightmost pixel otherwise
+# It returns (0, 0) if the image is 
 # totally black
 # --------------------------------------------
-def lefmostPoint(grayDiff):
+def extremumPoint(grayDiff, leftMost):
 	hProj = sum(grayDiff,2)  #horizontal projection
-	itemindex = findFirst(5, hProj)
+	
+	thresholdValue = 100 
+	itemindex = -1
+	if leftMost == 1:
+		itemindex = findFirst(thresholdValue, hProj)
+
+	else:
+		itemindex = findLast(thresholdValue, hProj)
+
 	x = 0
 	y = 0
 	if itemindex != -1:
 		x = itemindex;
-		y = findFirst(5, grayDiff[:, x])
+		y1 = findFirst(1, grayDiff[:, x])
+		y2 = findLast(1, grayDiff[:, x])
+		y = (int)((y1+y2)/2)
+		
 		
 	return (x, y)
 
-# --------------------------------------------
-# Return the intex of the leftmost
-# value in a gray image or (0, 0) is the image is 
-# totally black
-# --------------------------------------------
-def rightmostPoint(grayDiff):
-	hProj = sum(grayDiff,2)  #horizontal projection
-	itemindex = findLast(5, hProj)
-	x = 0
-	y = 0
-	if itemindex != -1:
-		x = itemindex;
-		y = findFirst(5, grayDiff[:, x])
-		
-	return (x, y)
+
 	

@@ -11,7 +11,7 @@ from detectArmDirection import *
 # Treate the current frame, using
 # the previous frame
 # -----------------------------------
-def frameTreatment(frame, prevFrame):
+def frameTreatment(frame, prevFrame, pointCoordonates):
 	# initialisation
 	frameHeight, frameWidth, nbColors = frame.shape
 	frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -24,24 +24,29 @@ def frameTreatment(frame, prevFrame):
 	diff = cv2.absdiff(frame, prevFrame)
 	diffGray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
 	# thresholding of the gray difference
-	ret, diffGray = cv2.threshold(diffGray, 10, 255, cv2.THRESH_TOZERO)
+	ret, diffGray = cv2.threshold(diffGray, 20, 255, cv2.THRESH_TOZERO)
 	
 	# detect if there is an arm in the image and his direction
 	armDirection = detectArmDirection(diffGray, frameWidth)
-	print(armDirection)
+	#print(armDirection)
 
 
 	imgCopy2 = np.zeros((frameHeight,frameWidth,3), dtype = "uint8")
 	imgCopy2 = frame.copy()
+	
+	if armDirection != -1:
+		coordonates = (0, 0)
+		if armDirection == 0:
+			coordonates = extremumPoint(diffGray, 0)
+		elif armDirection == 1:
+			coordonates = extremumPoint(diffGray, 1)
 
-	if armDirection == 0:
-		coordonates = rightmostPoint(diffGray, frameWidth)
 		cv2.circle(imgCopy2, coordonates, 10, (0,255,0), 2)
-	elif armDirection == 1:
-		coordonates = lefmostPoint(diffGray)
-		cv2.circle(imgCopy2, coordonates, 10, (0,255,0), 2)
+		cv2.circle(diffGray, coordonates, 10, (0,255,0), 2)
+		pointCoordonates.insert(len(pointCoordonates), coordonates)
 
 	cv2.imshow('imgCopy2', imgCopy2)
+	cv2.imshow('diffGray', diffGray)
 
 	# histogram equalisation
 	#diffGray = cv2.equalizeHist(diffGray)
@@ -60,9 +65,29 @@ def frameTreatment(frame, prevFrame):
 	#img=spotsImg
 	#cv2.imshow('window', spotsImg)
 
+# -----------------------------------
+# Write the ouput image
+# -----------------------------------
+def computeOutputImage(pointCoordonates, frameHeight, frameWidth):
+	# the maximum distance between points
+	maxDist = 50
+
+	# create the ouput image
+	outputImage = np.zeros((frameWidth,frameHeight,1), dtype = "uint8")
+	outputImage[:] = 255
+
+	for i in range(len(pointCoordonates)):
+		if i>0:
+			p1 = pointCoordonates[i-1]
+			p2 = pointCoordonates[i]
+			dist = np.sqrt((p2[0]-p1[0])*(p2[0]-p1[0]) + (p2[1]-p1[1])*(p2[1]-p1[1]))
+			if dist<=maxDist:
+				cv2.line(outputImage,p1,p2,10,2)
+
+	cv2.imwrite('out.png', outputImage)
 
 # -----------------------------------
-# infinite loop while the user doen't
+# infinite loop while the user doesn't
 # press espace or escape
 # -----------------------------------
 def pause():
@@ -82,25 +107,32 @@ def videoLoop(video):
 	frameHeight = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 	prevFrame = np.zeros((frameHeight, frameWidth, 3), dtype = "uint8")
 	frame = np.zeros((frameHeight, frameWidth, 3), dtype = "uint8")
+
 	# read the first frame
 	ret, prevFrame = video.read()
+	
+	pointCoordonates = []
 
 	while(video.isOpened()):
 		ret, frame = video.read()
 		if (not ret):
 			print('end of video')
+			
+			computeOutputImage(pointCoordonates, frameWidth, frameHeight)
 			break
-		frameTreatment(frame, prevFrame)
+
+		frameTreatment(frame, prevFrame, pointCoordonates)
 		
 		key = cv2.waitKey(50)
 		key = key & 0xFF
-		if (key == 27):# escape
+		if (key == 27):# escape key
 			break# end the program
-		if (key == 32):# espace
-			pause()
+		if (key == 32):# espace key
+			pause()# pause the program
 		prevFrame = frame
 
 
+	
 video = cv2.VideoCapture('video_stylo.avi')
 if (not video.isOpened()):
 	print('video file failed to open')
