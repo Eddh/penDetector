@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import argparse
+import kallman
 
 
 from lineDetection import *
@@ -84,6 +85,7 @@ def videoLoop(video):
 	frame = np.zeros((frameHeight, frameWidth, 3), dtype = "uint8")
 	# read the first frame
 	ret, prevFrame = video.read()
+	
 
 	while(video.isOpened()):
 		ret, frame = video.read()
