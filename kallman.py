@@ -11,6 +11,9 @@ class Kallman:
 		self.Hk = Hk 
 		# add Bk maybe if necessary	
 
+	def setFk(self, Fk):
+		self.Fk = Fk
+
 	def initialize(self, xkInitial, PkInitial):
 		self.prediction(xkInitial, PkInitial)	
 

@@ -69,7 +69,7 @@ def detectArmDirection(grayDiff, frameWidth):
 # --------------------------------------------
 # Return the intex of the leftmost pixel if
 # leftMost = 1, or the rightmost pixel otherwise
-# It returns (0, 0) if the image is 
+# It returns (-1, -1) if the image is 
 # totally black
 # --------------------------------------------
 def extremumPoint(grayDiff, leftMost):
@@ -83,8 +83,8 @@ def extremumPoint(grayDiff, leftMost):
 	else:
 		itemindex = findLast(thresholdValue, hProj)
 
-	x = 0
-	y = 0
+	x = -1
+	y = -1
 	if itemindex != -1:
 		x = itemindex;
 		y1 = findFirst(1, grayDiff[:, x])

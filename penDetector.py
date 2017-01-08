@@ -121,16 +121,36 @@ def videoLoop(video):
 	# read the first frame
 	ret, prevFrame = video.read()
 
-	Qk = np.array([[0.01, 0], [0, 0.01]]) 
-	Rk = np.array([[1, 0], [0, 1]])
-	Fk = np.array([[1, 0], [0, 1]])
-	kallmanFilter = Kallman(2, np.identity(2), Qk, Fk)
-	PkInitial = np.array([[0, 0], [0, 0]])
+	Qk = np.array([[0.1, 0  , 0  , 0  ],
+					[0 , 0.1, 0  , 0  ],
+					[0 , 0  , 0.1, 0  ],
+					[0 , 0  , 0  , 0.1]]) 
+
+	Rk = np.array([[0.9, 0  , 0  , 0  ],
+					[0 , 0.9, 0  , 0  ],
+					[0 , 0  , 0.5, 0  ],
+					[0 , 0  , 0  , 0.5]])
+
+	Fk = np.array([[1  , 0  , 0  , 0  ],
+					[0 , 1  , 0  , 0  ],
+					[0 , 0  , 0  , 0  ],
+					[0 , 0  , 0  , 0  ]])
+
+	kallmanFilter = Kallman(4, np.identity(4), Qk, Fk)
+
+	PkInitial = np.array([[0.5, 0  , 0  , 0  ],
+						   [0 , 0.5, 0  , 0  ],
+						   [0 , 0  , 0.5, 0  ],
+						   [0 , 0  , 0  , 0.5]])
+	vX = 0
+	vY = 0
 	print(np.asarray((0,0)))
-	kallmanFilter.initialize(np.asarray((frameWidth/2,frameHeight/2)), PkInitial)
+	kallmanFilter.initialize(np.asarray((frameWidth/2,frameHeight/2, vX, vY)), PkInitial)
 	
 	pointCoordinates = []
 	pointCoordinatesKallman = []
+
+	deltaT = 1
 
 	while(video.isOpened()):
 		ret, frame = video.read()
@@ -143,8 +163,13 @@ def videoLoop(video):
 			break
 
 		coordinates = frameTreatment(frame, prevFrame)
+		print(coordinates)
 		if coordinates != (-1, -1):
-			retKallman = kallmanFilter.update(np.asarray(coordinates), Rk)
+			if len(pointCoordinates) > 0:
+				vX = coordinates[0] - pointCoordinates[len(pointCoordinates)-1][0]/deltaT
+				vY = coordinates[1] - pointCoordinates[len(pointCoordinates)-1][1]/deltaT
+			zk = (coordinates[0], coordinates[1], vX, vY)
+			retKallman = kallmanFilter.update(np.asarray(zk), Rk)
 			coordinatesKallman = (int(retKallman[0]), int(retKallman[1]))
 				
 			frameCopy = frame.copy()
@@ -154,6 +179,8 @@ def videoLoop(video):
 			
 			pointCoordinates.append(coordinates)
 			pointCoordinatesKallman.append(coordinatesKallman)
+		else:
+			deltaT = deltaT + 1
 			
 		key = cv2.waitKey(50)
 		key = key & 0xFF
