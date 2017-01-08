@@ -2,3 +2,4 @@ video_stylo.avi
 .penDetector.py.swp
 out.png
 out2.png
+__pycache__/
