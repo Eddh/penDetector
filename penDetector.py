@@ -122,11 +122,12 @@ def videoLoop(video):
 	ret, prevFrame = video.read()
 
 	Qk = np.array([[0.01, 0], [0, 0.01]]) 
-	Rk = np.array([[0.99, 0], [0, 0.99]])
-	kallmanFilter = Kallman(2, np.identity(2), Qk)
-	PkInitial = np.array([[1, 0], [0, 1]])
+	Rk = np.array([[1, 0], [0, 1]])
+	Fk = np.array([[1, 0], [0, 1]])
+	kallmanFilter = Kallman(2, np.identity(2), Qk, Fk)
+	PkInitial = np.array([[0, 0], [0, 0]])
 	print(np.asarray((0,0)))
-	kallmanFilter.initialize(np.asarray((0,0)), PkInitial)
+	kallmanFilter.initialize(np.asarray((frameWidth/2,frameHeight/2)), PkInitial)
 	
 	pointCoordinates = []
 	pointCoordinatesKallman = []
@@ -142,17 +143,18 @@ def videoLoop(video):
 			break
 
 		coordinates = frameTreatment(frame, prevFrame)
-		retKallman = kallmanFilter.update(np.asarray(coordinates), Rk)
-		coordinatesKallman = (int(retKallman[0]), int(retKallman[1]))
+		if coordinates != (-1, -1):
+			retKallman = kallmanFilter.update(np.asarray(coordinates), Rk)
+			coordinatesKallman = (int(retKallman[0]), int(retKallman[1]))
+				
+			frameCopy = frame.copy()
+			cv2.circle(frameCopy, coordinatesKallman, 10, (0,0,255), 2)
+			cv2.imshow('kallman', frameCopy)
 			
-		frameCopy = frame.copy()
-		cv2.circle(frameCopy, coordinatesKallman, 10, (0,0,255), 2)
-		cv2.imshow('kallman', frameCopy)
-		
-		
-		pointCoordinates.append(coordinates)
-		pointCoordinatesKallman.append(coordinatesKallman)
-		
+			
+			pointCoordinates.append(coordinates)
+			pointCoordinatesKallman.append(coordinatesKallman)
+			
 		key = cv2.waitKey(50)
 		key = key & 0xFF
 		if (key == 27):# escape key
