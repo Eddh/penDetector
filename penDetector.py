@@ -121,27 +121,27 @@ def videoLoop(video):
 	# read the first frame
 	ret, prevFrame = video.read()
 
-	Qk = np.array([[0.1, 0  , 0  , 0  ],
-					[0 , 0.1, 0  , 0  ],
-					[0 , 0  , 0.1, 0  ],
-					[0 , 0  , 0  , 0.1]]) 
+	Qk = np.array([[0.001, 0  , 0  , 0  ],
+					[0 , 0.001, 0  , 0  ],
+					[0 , 0  , 0.01, 0  ],
+					[0 , 0  , 0  , 0.01]], dtype='Float64') 
 
-	Rk = np.array([[0.9, 0  , 0  , 0  ],
-					[0 , 0.9, 0  , 0  ],
-					[0 , 0  , 0.5, 0  ],
-					[0 , 0  , 0  , 0.5]])
+	Rk = np.array([[0.2, 0  , 0  , 0  ],
+					[0 , 0.2, 0  , 0  ],
+					[0 , 0  , 0.3, 0  ],
+					[0 , 0  , 0  , 0.3]], dtype='Float64')
 
 	Fk = np.array([[1  , 0  , 0  , 0  ],
 					[0 , 1  , 0  , 0  ],
-					[0 , 0  , 0  , 0  ],
-					[0 , 0  , 0  , 0  ]])
+					[0 , 0  , 1  , 0  ],
+					[0 , 0  , 0  , 1  ]], dtype='Float64')
 
 	kallmanFilter = Kallman(4, np.identity(4), Qk, Fk)
 
 	PkInitial = np.array([[0.5, 0  , 0  , 0  ],
 						   [0 , 0.5, 0  , 0  ],
 						   [0 , 0  , 0.5, 0  ],
-						   [0 , 0  , 0  , 0.5]])
+						   [0 , 0  , 0  , 0.5]], dtype='Float64')
 	vX = 0
 	vY = 0
 	print(np.asarray((0,0)))
@@ -165,22 +165,28 @@ def videoLoop(video):
 		coordinates = frameTreatment(frame, prevFrame)
 		print(coordinates)
 		if coordinates != (-1, -1):
-			if len(pointCoordinates) > 0:
-				vX = coordinates[0] - pointCoordinates[len(pointCoordinates)-1][0]/deltaT
-				vY = coordinates[1] - pointCoordinates[len(pointCoordinates)-1][1]/deltaT
+			if len(pointCoordinates) > 1:
+				vX = pointCoordinatesKallman[len(pointCoordinates)-2][0] - pointCoordinatesKallman[len(pointCoordinates)-1][0]
+				vY = pointCoordinatesKallman[len(pointCoordinates)-2][1] - pointCoordinatesKallman[len(pointCoordinates)-1][1]
+
+			Fk = np.array([[1 , 0  , deltaT  , 0  ],
+						   [0 , 1  , 0  , deltaT  ],
+						   [0 , 0  , 1  , 0  ],
+					       [0 , 0  , 0  , 1  ]], dtype='Float64')
+			kallmanFilter.setFk(Fk)
 			zk = (coordinates[0], coordinates[1], vX, vY)
 			retKallman = kallmanFilter.update(np.asarray(zk), Rk)
 			coordinatesKallman = (int(retKallman[0]), int(retKallman[1]))
-				
+			print('wat')
+			print(coordinatesKallman)
 			frameCopy = frame.copy()
 			cv2.circle(frameCopy, coordinatesKallman, 10, (0,0,255), 2)
 			cv2.imshow('kallman', frameCopy)
 			
 			
 			pointCoordinates.append(coordinates)
-			pointCoordinatesKallman.append(coordinatesKallman)
-		else:
-			deltaT = deltaT + 1
+			pointCoordinatesKallman.append(coordinatesKallman)		
+
 			
 		key = cv2.waitKey(50)
 		key = key & 0xFF
