@@ -1,8 +1,7 @@
 import numpy as np
 import cv2
 import argparse
-import kallman
-
+from kallman import Kallman
 
 from lineDetection import *
 from detectArmDirection import *
@@ -12,7 +11,7 @@ from detectArmDirection import *
 # Treate the current frame, using
 # the previous frame
 # -----------------------------------
-def frameTreatment(frame, prevFrame, pointCoordinates):
+def frameTreatment(frame, prevFrame):
 	# initialisation
 	frameHeight, frameWidth, nbColors = frame.shape
 	frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -44,19 +43,20 @@ def frameTreatment(frame, prevFrame, pointCoordinates):
 	imgCopy2 = np.zeros((frameHeight,frameWidth,3), dtype = "uint8")
 	imgCopy2 = frame.copy()
 	
+	coordinates = (-1, -1)
+
 	if armDirection != -1:
-		coordinates = (0, 0)
 		if armDirection == 0:
 			coordinates = extremumPoint(diffGray, 0)
 		elif armDirection == 1:
 			coordinates = extremumPoint(diffGray, 1)
 
 		cv2.circle(imgCopy2, coordinates, 10, (0,255,0), 2)
-		pointCoordinates.insert(len(pointCoordinates), coordinates)
 
 	cv2.imshow('imgCopy2', imgCopy2)
 	cv2.imshow('diffGray', diffGray)
 
+	return coordinates
 
 	# histogram equalisation
 	#diffGray = cv2.equalizeHist(diffGray)
@@ -78,7 +78,7 @@ def frameTreatment(frame, prevFrame, pointCoordinates):
 # -----------------------------------
 # Write the ouput image
 # -----------------------------------
-def computeOutputImage(pointCoordinates, frameHeight, frameWidth):
+def computeOutputImage(pointCoordinates, frameHeight, frameWidth, fileName):
 	# the maximum distance between points
 	maxDist = 50
 
@@ -94,7 +94,7 @@ def computeOutputImage(pointCoordinates, frameHeight, frameWidth):
 			if dist<=maxDist:
 				cv2.line(outputImage,p1,p2,10,2)
 
-	cv2.imwrite('out.png', outputImage)
+	cv2.imwrite(fileName, outputImage)
 
 # -----------------------------------
 # infinite loop while the user doesn't
@@ -120,18 +120,29 @@ def videoLoop(video):
 
 	# read the first frame
 	ret, prevFrame = video.read()
+	kallmanFilter = Kallman(2, np.identity(2))
+	PkInitial = np.array([[1, 0], [0, 1]])
+	print(np.asarray((0,0)))
+	kallmanFilter.initialize(np.asarray((0,0)), PkInitial)
 	
 	pointCoordinates = []
+	pointCoordinatesKallman = []
 
 	while(video.isOpened()):
 		ret, frame = video.read()
 		if (not ret):
 			print('end of video')
 			
-			computeOutputImage(pointCoordinates, frameWidth, frameHeight)
+			computeOutputImage(pointCoordinates, frameWidth, frameHeight, 'out.png')
+			computeOutputImage(pointCoordinates, frameWidth, frameHeight, 'out2.png')
+			
 			break
 
-		frameTreatment(frame, prevFrame, pointCoordinates)
+		coordinates = frameTreatment(frame, prevFrame)
+		coordinatesKallman = kallmanFilter.update(np.asarray(coordinates), np.identity(2))
+		
+		pointCoordinates.append(coordinates)
+		pointCoordinatesKallman.append(coordinatesKallman)
 		
 		key = cv2.waitKey(50)
 		key = key & 0xFF

@@ -1,40 +1,41 @@
 import numpy as np
 
-class kallman:
+class Kallman:
 
 	def __init__(self, vectorSize, Hk):
-		self.xkPriori = np.array(vectorSize, np.dtype('Float64')
-		self.PkPriori = np.array((vectorSize, vectorSize), np.dtype('Float64')
-		self.Fk = np.array((vectorSize, vectorSize), np.dtyp('Float64')
+		self.xkPriori = np.zeros(vectorSize, dtype = 'Float64')
+		self.PkPriori = np.zeros((vectorSize, vectorSize), dtype = 'Float64')
+		self.Fk = np.zeros((vectorSize, vectorSize), dtype = 'Float64')
 		# Qk : covariance of external uncertainty
 		self.Qk = np.identity(vectorSize)
 		self.Hk = Hk 
 		# add Bk maybe if necessary
 
-	def initialize(xkInitial, PkInitial):
-		prediction(xkInitial, PkInitial)	
+	def initialize(self, xkInitial, PkInitial):
+		self.prediction(xkInitial, PkInitial)	
 
 	# zK : measurement
 	# Rk : covariance of sensor noise	
-	def update(zk, Rk):
-		correction(zk, Rk)
-		prediction()
+	def update(self, zk, Rk):
+		self.correction(zk, Rk)
+		self.prediction(self.xkPosteriori, self.PkPosteriori)
+		return self.xkPosteriori
 
-	def prediction(xkPosteriori, PkPosteriori):
-		xkPriori = Fk.dot(xkPosteriori)
-		PkPriori = Fk.dot(PkPosteriori.dot(np.transpose(Fk))) + Qk
+	def prediction(self, xkPosteriori, PkPosteriori):
+		self.xkPriori = self.Fk.dot(xkPosteriori)
+		self.PkPriori = self.Fk.dot(PkPosteriori.dot(np.transpose(self.Fk))) + self.Qk
 
-	def correction(zk, Rk):
+	def correction(self, zk, Rk):
 		# zk : sensor reading
 		# Hk : sensor matrix for units etc
 		# Sk : residual covariance
-		HkT = np.transpose(Hk)
+		HkT = np.transpose(self.Hk)
 
-		yk = zk - Hk.dot(xkPriori)
-		Sk = Hk.dot(PkPriori.dot(HkT)) + Rk
+		yk = zk - self.Hk.dot(self.xkPriori)
+		Sk = self.Hk.dot(self.PkPriori.dot(HkT)) + Rk
 
-		optimalK = PkPriori.dot(HkT.dot(Sk))
+		optimalK = self.PkPriori.dot(HkT.dot(Sk))
 
-		xkPosteriori = xkPriori + optimalK.dot(yk)
-		PkPosteriori = PkPriori - optimalK.dot(Hk.dot(PkPriori))
+		self.xkPosteriori = self.xkPriori + optimalK.dot(yk)
+		self.PkPosteriori = self.PkPriori - optimalK.dot(self.Hk.dot(self.PkPriori))
 
