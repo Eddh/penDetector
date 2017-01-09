@@ -41,6 +41,7 @@ def frameTreatment(frame, prevFrame):
 	imgCopy2 = frame.copy()
 
 
+
 	coordinates = (-1, -1)
 
 	if res:
@@ -48,9 +49,14 @@ def frameTreatment(frame, prevFrame):
 		cv2.line(imgCopy2,((int)(frameWidth/2),(int)(frameHeight/2)),armPoint,5,2)	
 	
 		# compute coordinates
-		coordinates = findFarthestPoint(diffGray, frameWidth, frameHeight, armPoint)
-	
+		#coordinates = findFarthestPoint(diffGray, frameWidth, frameHeight, armPoint)
+		(rotatedImage, rotationMatrix) = rotateImage(diffGray, armAngle)
+		coordinates = extremumPoint(rotatedImage, 1)
 
+		coordinates = applyRotToCoordinates(armAngle, rotatedImage, coordinates)
+		print(coordinates)
+
+		cv2.imshow('rotatedImage', rotatedImage)
 		cv2.circle(imgCopy2, coordinates, 10, (0,255,0), 2)
 
 	cv2.imshow('imgCopy2', imgCopy2)
@@ -196,7 +202,7 @@ def videoLoop(video):
 
 
 	
-video = cv2.VideoCapture('video_stylo.avi')
+video = cv2.VideoCapture('left_handed.avi')
 if (not video.isOpened()):
 	print('video file failed to open')
 	exit()	

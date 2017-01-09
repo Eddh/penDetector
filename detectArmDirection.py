@@ -114,9 +114,54 @@ def detectArmAngle(grayDiff, frameWidth, frameHeight):
 	return (found, globalAngle)
 
 
+def applyRotToCoordinates(imageAngle, rotatedImage, coordinates):
 
+	height, width = rotatedImage.shape[:2]
+	imageCenter = (width/2, height/2)
+
+	diffx = coordinates[0]-imageCenter[0]
+	diffy = coordinates[1]-imageCenter[1]
+
+	#y axis is inverted
+	diffy *= -1
+
+	dist = np.sqrt(diffx*diffx + diffy*diffy)
+	
+	coordinateAngle = np.arctan2(diffy,diffx)
+
+	
+	angleAfterRotation = coordinateAngle-imageAngle
+	#print(coordinateAngle)
+
+
+	rotatedCoordinates = (int(imageCenter[0]+dist*np.cos(angleAfterRotation)), int(imageCenter[1]-dist*np.sin(angleAfterRotation)))
+	return rotatedCoordinates
+	
+
+def rotateImage(image, radiantAngle):
+	height, width = image.shape[:2]
+	imageCenter = (width/2, height/2)
+
+	angleDegree = radiantAngle / np.pi * 180
+	rotationMatrix = cv2.getRotationMatrix2D(imageCenter, angleDegree, 1)
+	
+	absCos = np.abs(rotationMatrix[0, 0])
+	absSin = np.abs(rotationMatrix[0, 1])
+
+	#boundWidth = int(height * absSin + width * absCos)
+	#boundHeight = int(height * absCos + width * absSin)
+
+	#rotationMatrix[0, 2] += boundWidth/2 - imageCenter[0]
+	#rotationMatrix[1, 2] += boundHeight/2 - imageCenter[1]
+
+	#rotatedImage = cv2.warpAffine(image, rotationMatrix, (boundWidth, boundHeight))
+	rotatedImage = cv2.warpAffine(image, rotationMatrix, (width, height))
+
+	return (rotatedImage, rotationMatrix)
+	
 
 def findFarthestPoint(diffGray, frameWidth, frameHeight, point):
+
 	coordinates = point
 	farthestDist = 0
 	for x in range(frameWidth):
