@@ -3,16 +3,21 @@ import numpy as np
 class Kallman:
 
 	def __init__(self, vectorSize, Hk, Qk, Fk):
+		# xkPriori : estimate of the current state from the previous state
 		self.xkPriori = np.zeros(vectorSize, dtype = 'Float64')
+		# PkPriori : estimate of the covariance of the current state from the previous state
 		self.PkPriori = np.zeros((vectorSize, vectorSize), dtype = 'Float64')
+		# Fk : matrix modeling the transition between 2 consecutives states
 		self.Fk = Fk
 		# Qk : covariance of external uncertainty
 		self.Qk = Qk
+		# Hk : sensor matrix for units etc
 		self.Hk = Hk 
 
 	def setFk(self, Fk):
 		self.Fk = Fk
 
+	# necessary initialization before starting the prediction/correction loop
 	def initialize(self, xkInitial, PkInitial):
 		self.prediction(xkInitial, PkInitial)	
 
