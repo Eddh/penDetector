@@ -121,10 +121,10 @@ def videoLoop(video):
 	# read the first frame
 	ret, prevFrame = video.read()
 
-	Qk = np.array([[0.001, 0  , 0  , 0  ],
-					[0 , 0.001, 0  , 0  ],
-					[0 , 0  , 0.01, 0  ],
-					[0 , 0  , 0  , 0.01]], dtype='Float64') 
+	Qk = np.array([[0.03, 0  , 0  , 0  ],
+					[0 , 0.03, 0  , 0  ],
+					[0 , 0  , 0.05, 0  ],
+					[0 , 0  , 0  , 0.05]], dtype='Float64') 
 
 	Rk = np.array([[0.2, 0  , 0  , 0  ],
 					[0 , 0.2, 0  , 0  ],
@@ -163,7 +163,6 @@ def videoLoop(video):
 			break
 
 		coordinates = frameTreatment(frame, prevFrame)
-		print(coordinates)
 		if coordinates != (-1, -1):
 			if len(pointCoordinates) > 1:
 				vX = pointCoordinatesKallman[len(pointCoordinates)-2][0] - pointCoordinatesKallman[len(pointCoordinates)-1][0]
@@ -177,8 +176,7 @@ def videoLoop(video):
 			zk = (coordinates[0], coordinates[1], vX, vY)
 			retKallman = kallmanFilter.update(np.asarray(zk), Rk)
 			coordinatesKallman = (int(retKallman[0]), int(retKallman[1]))
-			print('wat')
-			print(coordinatesKallman)
+
 			frameCopy = frame.copy()
 			cv2.circle(frameCopy, coordinatesKallman, 10, (0,0,255), 2)
 			cv2.imshow('kallman', frameCopy)

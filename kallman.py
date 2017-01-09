@@ -26,7 +26,7 @@ class Kallman:
 	def prediction(self, xkPosteriori, PkPosteriori):
 		self.xkPriori = self.Fk.dot(xkPosteriori)
 		FkT = np.transpose(self.Fk)
-		self.PkPriori = self.Fk.dot(PkPosteriori.dot(np.transpose(self.Fk))) + self.Qk
+		self.PkPriori = self.Fk.dot(PkPosteriori.dot(FkT)) + self.Qk
 
 	def correction(self, zk, Rk):
 		# zk : sensor reading
