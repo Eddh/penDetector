@@ -49,37 +49,19 @@ def frameTreatment(frame, prevFrame):
 		cv2.line(imgCopy2,((int)(frameWidth/2),(int)(frameHeight/2)),armPoint,5,2)	
 	
 		# compute coordinates
-		#coordinates = findFarthestPoint(diffGray, frameWidth, frameHeight, armPoint)
 		(rotatedImage, rotationMatrix) = rotateImage(diffGray, armAngle)
 		coordinates = extremumPoint(rotatedImage, 1)
 
 		coordinates = applyRotToCoordinates(armAngle, rotatedImage, coordinates)
-		print(coordinates)
+		#print(coordinates)
 
-		cv2.imshow('rotatedImage', rotatedImage)
-		cv2.circle(imgCopy2, coordinates, 10, (0,255,0), 2)
+		#cv2.imshow('rotatedImage', rotatedImage)
+		#cv2.circle(imgCopy2, coordinates, 10, (0,255,0), 2)
 
-	cv2.imshow('imgCopy2', imgCopy2)
-	cv2.imshow('diffGray', diffGray)
+	#cv2.imshow('imgCopy2', imgCopy2)
+	#cv2.imshow('diffGray', diffGray)
 
 	return coordinates
-
-	# histogram equalisation
-	#diffGray = cv2.equalizeHist(diffGray)
-	#ret, diffGrayBin = cv2.threshold(diffGray,68, 255, cv2.THRESH_BINARY)
-
-	#frameDiff = cv2.bitwise_and(frame,frame,mask=diffGrayBin) 
-	#diffCanny = cv2.Canny(frameDiff, threshold1=100, threshold2=500, apertureSize=3)
-
-	#lines = cv2.HoughLines(diffCanny,1,np.pi/180,threshold=30)
-	
-	#frameIntersections = intersections(lines, frameHeight, frameWidth)	
-	
-	#frameIntersectionsBlur = cv2.GaussianBlur(frameIntersections,(33,33),0)
-	#spotsImg = brightestSpotsImg(frameIntersectionsBlur, 10)
-	#spotsImg = cv2.add(spotsImg, frame)
-	#img=spotsImg
-	#cv2.imshow('window', spotsImg)
 
 # -----------------------------------
 # Write the ouput image
@@ -185,11 +167,13 @@ def videoLoop(video):
 
 			frameCopy = frame.copy()
 			cv2.circle(frameCopy, coordinatesKallman, 10, (0,0,255), 2)
-			cv2.imshow('kallman', frameCopy)
+			cv2.circle(frameCopy, coordinates, 10, (0,255,0), 2)
+			cv2.imshow('Pen Detector', frameCopy)
 			
 			
 			pointCoordinates.append(coordinates)
-			pointCoordinatesKallman.append(coordinatesKallman)		
+			pointCoordinatesKallman.append(coordinatesKallman)
+
 
 			
 		key = cv2.waitKey(50)
@@ -202,7 +186,7 @@ def videoLoop(video):
 
 
 	
-video = cv2.VideoCapture('left_handed.avi')
+video = cv2.VideoCapture('video_stylo.avi')
 if (not video.isOpened()):
 	print('video file failed to open')
 	exit()	

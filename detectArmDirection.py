@@ -75,7 +75,7 @@ def detectArmAngle(grayDiff, frameWidth, frameHeight):
 	for x in range(frameWidth):
 		if grayDiff[y, x]>0:
 			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
-			if angle > np.pi/4:
+			if angle > np.pi/2:
 				angle -= 2*np.pi
 			globalAngle += angle
 			detectedPixel += 1
@@ -84,7 +84,7 @@ def detectArmAngle(grayDiff, frameWidth, frameHeight):
 	for y in range(frameHeight):
 		if grayDiff[y, x]>0:
 			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
-			if angle > np.pi/4:
+			if angle > np.pi/2:
 				angle -= 2*np.pi
 			globalAngle += angle
 			detectedPixel += 1
@@ -93,7 +93,7 @@ def detectArmAngle(grayDiff, frameWidth, frameHeight):
 	for x in range(frameWidth):
 		if grayDiff[y, x]>0:
 			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
-			if angle > np.pi/4:
+			if angle > np.pi/2:
 				angle -= 2*np.pi
 			globalAngle += angle
 			detectedPixel += 1
@@ -102,7 +102,7 @@ def detectArmAngle(grayDiff, frameWidth, frameHeight):
 	for y in range(frameHeight):
 		if grayDiff[y, x]>0:
 			angle = np.arctan2(y-frameHeight/2,x-frameWidth/2)
-			if angle > np.pi/4:
+			if angle > np.pi/2:
 				angle -= 2*np.pi
 			globalAngle += angle
 			detectedPixel += 1
@@ -148,13 +148,6 @@ def rotateImage(image, radiantAngle):
 	absCos = np.abs(rotationMatrix[0, 0])
 	absSin = np.abs(rotationMatrix[0, 1])
 
-	#boundWidth = int(height * absSin + width * absCos)
-	#boundHeight = int(height * absCos + width * absSin)
-
-	#rotationMatrix[0, 2] += boundWidth/2 - imageCenter[0]
-	#rotationMatrix[1, 2] += boundHeight/2 - imageCenter[1]
-
-	#rotatedImage = cv2.warpAffine(image, rotationMatrix, (boundWidth, boundHeight))
 	rotatedImage = cv2.warpAffine(image, rotationMatrix, (width, height))
 
 	return (rotatedImage, rotationMatrix)
